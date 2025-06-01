@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Responsive Player Score Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 20px;
+      max-width: 600px;
+      width: 100%;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Scrollable table on small screens */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 13px;
+        padding: 8px;
+      }
+
+      input[type="text"] {
+        font-size: 14px;
+      }
+
+      button {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="player-count-page">
+    <h2>Enter Number of Players</h2>
+    <input type="number" id="player-count" placeholder="Enter number of players" min="1" />
+    <button onclick="generatePlayerInputs()">Next</button>
+  </div>
+
+  <div class="container hidden" id="player-names-page">
+    <h2>Enter Player Names</h2>
+    <form id="player-names-form"></form>
+    <button onclick="goToScorePage()">Next</button>
+  </div>
+
+  <div class="container hidden" id="scores-page">
+    <h2>Enter Scores</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Player Name</th>
+            <th>Scores (comma-separated)</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="score-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let numberOfPlayers = 0;
+    let playerNames = [];
+
+    function generatePlayerInputs() {
+      numberOfPlayers = parseInt(document.getElementById("player-count").value);
+      if (!numberOfPlayers || numberOfPlayers <= 0) {
+        alert("Please enter a valid number of players.");
+        return;
+      }
+
+      const form = document.getElementById("player-names-form");
+      form.innerHTML = "";
+      for (let i = 0; i < numberOfPlayers; i++) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = `Player ${i + 1} Name`;
+        input.required = true;
+        input.name = `player-${i}`;
+        form.appendChild(input);
+      }
+
+      document.getElementById("player-count-page").classList.add("hidden");
+      document.getElementById("player-names-page").classList.remove("hidden");
+    }
+
+    function goToScorePage() {
+      const form = document.getElementById("player-names-form");
+      const inputs = form.querySelectorAll("input");
+      playerNames = [];
+
+      for (let input of inputs) {
+        if (input.value.trim() === "") {
+          alert("Please enter all player names.");
+          return;
+        }
+        playerNames.push(input.value.trim());
+      }
+
+      const tbody = document.getElementById("score-table-body");
+      tbody.innerHTML = "";
+      for (let name of playerNames) {
+        const tr = document.createElement("tr");
+
+        const nameTd = document.createElement("td");
+        nameTd.textContent = name;
+
+        const scoreInputTd = document.createElement("td");
+        const scoreInput = document.createElement("input");
+        scoreInput.type = "text";
+        scoreInput.placeholder = "e.g. 10,20,15";
+        scoreInput.oninput = () => updateTotal(scoreInput, totalTd);
+        scoreInputTd.appendChild(scoreInput);
+
+        const totalTd = document.createElement("td");
+        totalTd.textContent = "0";
+
+        tr.appendChild(nameTd);
+        tr.appendChild(scoreInputTd);
+        tr.appendChild(totalTd);
+        tbody.appendChild(tr);
+      }
+
+      document.getElementById("player-names-page").classList.add("hidden");
+      document.getElementById("scores-page").classList.remove("hidden");
+    }
+
+    function updateTotal(input, totalCell) {
+      const scores = input.value.split(",").map(val => parseFloat(val.trim())).filter(n => !isNaN(n));
+      const sum = scores.reduce((acc, val) => acc + val, 0);
+      totalCell.textContent = sum;
+    }
+  </script>
+</body>
+</html>
